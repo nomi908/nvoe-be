@@ -148,6 +148,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 //   res.json({ received: true });
 // };
 
+// Disable bodyParser for Vercel API route
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 // 1️⃣ Create PaymentIntent for Flutter app
 export const buyPointsController = async (req, res) => {
   try {
