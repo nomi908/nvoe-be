@@ -25,9 +25,9 @@ app.use(cors());
 // before the JSON body parser middleware so signature verification works.
 // app.post("/api/v1/webhook", express.raw({ type: "application/json" }), stripeWebhookController);
 app.post(
-	"/api/v1/points/stripe-webhook",
-	express.raw({ type: "application/json" }),
-	stripeWebhookController
+        "/api/v1/points/stripe-webhook",
+        express.raw({ type: "application/json" }),
+        stripeWebhookController
 );
 
 app.use(express.json());
@@ -50,4 +50,4 @@ app.use("/api/v1/conversations", conversationRoutes);
 app.get("/", (req, res) => res.send("Backend Running"));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
