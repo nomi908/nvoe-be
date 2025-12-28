@@ -47,7 +47,7 @@ app.use("/api/v1/conversations", conversationRoutes);
 // app.use("/api/products", productRoutes);
 // app.use("/api/chats", chatRoutes);
 
-app.get("/", (req, res) => res.send("Backend Running"));
+app.get("/", (req, res) => res.send("NVOE Backend API Running"));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
