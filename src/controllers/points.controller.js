@@ -1,4 +1,3 @@
-
 // // controllers/points.controller.js
 // import Stripe from "stripe";
 // import { supabase } from "../config/supabase.js";
@@ -13,7 +12,7 @@
 //     const userId = req.user?.id;
 
 //     if (!userId) return res.status(401).json({ message: "Unauthorized" });
-//     if (!ALLOWED_POINT_PACKAGES.includes(points)) 
+//     if (!ALLOWED_POINT_PACKAGES.includes(points))
 //       return res.status(400).json({ message: "Invalid points package" });
 
 //     const paymentIntent = await stripe.paymentIntents.create({
@@ -87,8 +86,6 @@
 //   res.json({ received: true });
 // };
 
-
-
 import Stripe from "stripe";
 import { supabase } from "../config/supabase.js";
 import { ALLOWED_POINT_PACKAGES, MIN_POINTS } from "../config/points.js";
@@ -102,7 +99,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 //     const userId = req.user?.id;
 
 //     if (!userId) return res.status(401).json({ message: "Unauthorized" });
-//     if (!ALLOWED_POINT_PACKAGES.includes(points)) 
+//     if (!ALLOWED_POINT_PACKAGES.includes(points))
 //       return res.status(400).json({ message: "Invalid points package" });
 
 //     const paymentIntent = await stripe.paymentIntents.create({
@@ -151,7 +148,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 //   res.json({ received: true });
 // };
 
-
 // 1️⃣ Create PaymentIntent for Flutter app
 export const buyPointsController = async (req, res) => {
   try {
@@ -159,7 +155,7 @@ export const buyPointsController = async (req, res) => {
     const userId = req.user?.id;
 
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
-    if (!ALLOWED_POINT_PACKAGES.includes(points)) 
+    if (!ALLOWED_POINT_PACKAGES.includes(points))
       return res.status(400).json({ message: "Invalid points package" });
 
     const paymentIntent = await stripe.paymentIntents.create({
@@ -236,70 +232,117 @@ export const buyPointsController = async (req, res) => {
 //   res.json({ received: true });
 // };
 
-export const stripeWebhookController = async (req, res) => {
-  // 1️⃣ Log raw webhook receipt
-  console.log("✅ Webhook received");
-  const sig = req.headers["stripe-signature"];
-  console.log("stripe-signature header:", sig?.slice(0, 40) + "...");
+// export const stripeWebhookController = async (req, res) => {
+//   // 1️⃣ Log raw webhook receipt
+//   console.log("✅ Webhook received");
+//   const sig = req.headers["stripe-signature"];
+//   console.log("stripe-signature header:", sig?.slice(0, 40) + "...");
 
-  // Ensure req.body is a buffer
+//   // Ensure req.body is a buffer
+//   if (!Buffer.isBuffer(req.body)) {
+//     console.error("❌ req.body is not a buffer!");
+//     return res.status(400).send("Webhook Error: Request body is not a buffer");
+//   }
+
+//   let event;
+//   try {
+//     // Construct event using Stripe library
+//     event = stripe.webhooks.constructEvent(
+//       req.body,
+//       sig,
+//       process.env.STRIPE_WEBHOOK_SECRET
+//     );
+//   } catch (err) {
+//     console.error("❌ Webhook signature verification failed:", err.message);
+//     return res.status(400).send(`Webhook Error: ${err.message}`);
+//   }
+
+//   console.log("✅ Stripe webhook verified:", event.type);
+
+//   // 2️⃣ Handle successful payments
+//   if (event.type === "payment_intent.succeeded") {
+//     const paymentIntent = event.data.object;
+//     const userId = paymentIntent.metadata.userId;
+//     const pointsPurchased = parseInt(paymentIntent.metadata.pointsPurchased);
+
+//     if (userId && pointsPurchased) {
+//       try {
+//         // Safer approach to increment points
+//         const { data: user, error: fetchErr } = await supabase
+//           .from("users")
+//           .select("points")
+//           .eq("id", userId)
+//           .single();
+
+//         if (fetchErr || !user) {
+//           console.error("❌ User not found:", fetchErr);
+//         } else {
+//           const newPoints = (user.points || 0) + pointsPurchased;
+//           const { error: updateErr } = await supabase
+//             .from("users")
+//             .update({ points: newPoints })
+//             .eq("id", userId);
+
+//           if (updateErr) console.error("❌ Failed to add points:", updateErr);
+//           else console.log(`✅ User ${userId} awarded ${pointsPurchased} points.`);
+//         }
+//       } catch (dbErr) {
+//         console.error("❌ Supabase error:", dbErr);
+//       }
+//     }
+//   }
+
+//   // 3️⃣ Respond to Stripe
+//   res.json({ received: true });
+// };
+
+export const stripeWebhookController = async (req, res) => {
+  const sig = req.headers["stripe-signature"];
+
   if (!Buffer.isBuffer(req.body)) {
-    console.error("❌ req.body is not a buffer!");
-    return res.status(400).send("Webhook Error: Request body is not a buffer");
+    console.error("❌ req.body is not raw buffer");
+    return res.status(400).send("Invalid body");
   }
 
   let event;
   try {
-    // Construct event using Stripe library
     event = stripe.webhooks.constructEvent(
       req.body,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET
+      process.env.STRIPE_WEBHOOK_SECRET,
     );
   } catch (err) {
     console.error("❌ Webhook signature verification failed:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  console.log("✅ Stripe webhook verified:", event.type);
+  console.log("✅ Stripe event:", event.type);
 
-  // 2️⃣ Handle successful payments
   if (event.type === "payment_intent.succeeded") {
     const paymentIntent = event.data.object;
-    const userId = paymentIntent.metadata.userId;
-    const pointsPurchased = parseInt(paymentIntent.metadata.pointsPurchased);
+    const userId = paymentIntent.metadata?.userId;
+    const pointsPurchased = Number(paymentIntent.metadata?.pointsPurchased);
 
     if (userId && pointsPurchased) {
-      try {
-        // Safer approach to increment points
-        const { data: user, error: fetchErr } = await supabase
-          .from("users")
-          .select("points")
-          .eq("id", userId)
-          .single();
+      const { data: user } = await supabase
+        .from("users")
+        .select("points")
+        .eq("id", userId)
+        .single();
 
-        if (fetchErr || !user) {
-          console.error("❌ User not found:", fetchErr);
-        } else {
-          const newPoints = (user.points || 0) + pointsPurchased;
-          const { error: updateErr } = await supabase
-            .from("users")
-            .update({ points: newPoints })
-            .eq("id", userId);
+      const newPoints = (user?.points || 0) + pointsPurchased;
 
-          if (updateErr) console.error("❌ Failed to add points:", updateErr);
-          else console.log(`✅ User ${userId} awarded ${pointsPurchased} points.`);
-        }
-      } catch (dbErr) {
-        console.error("❌ Supabase error:", dbErr);
-      }
+      await supabase
+        .from("users")
+        .update({ points: newPoints })
+        .eq("id", userId);
+
+      console.log(`✅ Points added: ${pointsPurchased} to user ${userId}`);
     }
   }
 
-  // 3️⃣ Respond to Stripe
   res.json({ received: true });
 };
-
 
 // 3️⃣ Admin can manually add points to any user
 export const adminAddPointsController = async (req, res) => {
@@ -313,7 +356,9 @@ export const adminAddPointsController = async (req, res) => {
 
     // 2️⃣ Validate input
     if (!userId || !points || points < MIN_POINTS) {
-      return res.status(400).json({ message: `Points must be at least ${MIN_POINTS}` });
+      return res
+        .status(400)
+        .json({ message: `Points must be at least ${MIN_POINTS}` });
     }
 
     // Optional: restrict to allowed packages
@@ -328,7 +373,8 @@ export const adminAddPointsController = async (req, res) => {
       .eq("id", userId)
       .single();
 
-    if (fetchErr || !user) return res.status(404).json({ message: "User not found" });
+    if (fetchErr || !user)
+      return res.status(404).json({ message: "User not found" });
 
     // 4️⃣ Update points manually
     const newPoints = user.points + points;
@@ -337,14 +383,14 @@ export const adminAddPointsController = async (req, res) => {
       .update({ points: newPoints })
       .eq("id", userId);
 
-    if (updateErr) return res.status(500).json({ message: "Failed to add points" });
+    if (updateErr)
+      return res.status(500).json({ message: "Failed to add points" });
 
     // 5️⃣ Success response
-    res.status(200).json({ 
+    res.status(200).json({
       message: `Added ${points} points to ${user.name}`,
-      user: { name: user.name, points: newPoints }
+      user: { name: user.name, points: newPoints },
     });
-
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

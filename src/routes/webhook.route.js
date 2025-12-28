@@ -65,7 +65,7 @@ const router = express.Router();
 router.post(
   "/stripe",
   express.raw({ type: "application/json" }),
-  stripeWebhookController
+  stripeWebhookController,
 );
 
 export default router;

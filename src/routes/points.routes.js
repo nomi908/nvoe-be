@@ -29,11 +29,11 @@ router.post("/buy", authenticateJWT, buyPointsController);
 router.post("/admin/add", authenticateJWT, adminAddPointsController);
 
 // Stripe webhook (raw body, no auth)
-router.post(
-  "/stripe-webhook",
-  express.raw({ type: "application/json" }),
-  stripeWebhookController
-);
+// router.post(
+//   "/stripe-webhook",
+//   express.raw({ type: "application/json" }),
+//   stripeWebhookController
+// );
 
 export default router;
 
