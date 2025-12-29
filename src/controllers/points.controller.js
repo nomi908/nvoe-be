@@ -89,7 +89,6 @@
 import Stripe from "stripe";
 import { supabase } from "../config/supabase.js";
 import { ALLOWED_POINT_PACKAGES, MIN_POINTS } from "../config/points.js";
-import { headers } from "express";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -305,8 +304,8 @@ export const buyPointsController = async (req, res) => {
 // };
 
 export const stripeWebhookController = async (req, res) => {
-  // const sig = req.headers["stripe-signature"];
-  const sig = headers().get("stripe-signature");
+  const body = await req.text(); // ✅ raw text
+  const sig = req.headers["stripe-signature"];
 
   if (!Buffer.isBuffer(req.body)) {
     // console.error("❌ req.body is not raw buffer");
@@ -316,7 +315,7 @@ export const stripeWebhookController = async (req, res) => {
   let event;
   try {
     event = stripe.webhooks.constructEvent(
-      req.body,
+      body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET,
     );
