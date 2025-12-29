@@ -304,10 +304,11 @@ export const buyPointsController = async (req, res) => {
 // };
 
 export const stripeWebhookController = async (req, res) => {
-  const sig = req.headers["stripe-signature"];
+  // const sig = req.headers["stripe-signature"];
+  const sig = headers().get("stripe-signature");
 
   if (!Buffer.isBuffer(req.body)) {
-    console.error("❌ req.body is not raw buffer");
+    // console.error("❌ req.body is not raw buffer");
     return res.status(400).send("Invalid body");
   }
 
@@ -319,7 +320,7 @@ export const stripeWebhookController = async (req, res) => {
       process.env.STRIPE_WEBHOOK_SECRET,
     );
   } catch (err) {
-    console.error("❌ Webhook signature verification failed:", err.message);
+    // console.error("❌ Webhook signature verification failed:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 

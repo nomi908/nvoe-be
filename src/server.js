@@ -15,7 +15,6 @@ import { stripeWebhookController } from "./controllers/points.controller.js";
 dotenv.config();
 
 const app = express();
-app.use(cors());
 
 /**
  * ✅ STRIPE WEBHOOK — MUST BE FIRST
@@ -27,6 +26,8 @@ app.post(
         express.raw({ type: "application/json" }),
         stripeWebhookController,
 );
+
+app.use(cors());
 
 /**
  * ❗ JSON parser AFTER webhook
