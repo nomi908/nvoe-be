@@ -89,6 +89,7 @@
 import Stripe from "stripe";
 import { supabase } from "../config/supabase.js";
 import { ALLOWED_POINT_PACKAGES, MIN_POINTS } from "../config/points.js";
+import { headers } from "express";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
